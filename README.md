@@ -8,7 +8,7 @@ You have a large folder called _stuff_. You want to send it to a friend over the
 
 BitTorrent is probably the best solution because it's direct and works behind NAT. You can try creating your own torrent and setting up a private tracker or trying to add a peer directly. Remember to turn off peer discovery such as DHT or someone unexpected could download off you.
 
-I propose a solution that is designed specifically for person-to-person transfers of large files &amp; folders, and just for fun, let's also design it with a focus on privacy where possible.
+I propose a solution that is designed specifically for person-to-person transfers of large files &amp; folders.
 
 TODO: Consider expanding the scope to support multiple peers. It would have the following implications:
 * Chunk-based transfers with chunk hash verification.
@@ -50,6 +50,7 @@ Downloading to /Users/Pavel/Downloads/stuff/
 ```
 
 ## Security &amp; Privacy
+* All data, including the manifest, is transmitted in encrypted form, so nobody except the sharer and the receiver can figure out exactly what is being transmitted, aside from possibly being able to calculate its size. Dumping random junk on the wire to prevent this is not currently in scope. The only data transmitted in plaintext is: share code, public keys, and sharer's IP address &amp; port.
 * The SHA1 hash of the sharer's public key is included as part of the share key to prevent man-in-the-middle attacks.
 * Upon connecting to the sharer, the receiver provides its public key. The sharer then securely generates 256 bits which become the AES key for the remainder of the session, and sends this key encrypted via RSA using the receiver's public key.
 
