@@ -29,23 +29,27 @@ func Listen(laddr string, keyPair *pubkeycrypto.KeyPair) (*Listener, error) {
 		establishedConnectionsChan: make(chan *Connection),
 		shutdownChan:               make(chan struct{}),
 	}
-	go func() {
-		for {
-			tcpConn, err2 := tcpListener.Accept()
-			if err2 != nil {
-				return
-			}
-			go func() {
-				vortexConn, err3 := initConnectionAsListener(tcpConn, listener)
-				if err3 != nil {
-					fmt.Println("initConnectionAsListener failed:", err3)
-					return
-				}
-				listener.establishedConnectionsChan <- vortexConn
-			}()
-		}
-	}()
+	go listener.beginAcceptingConnections()
 	return listener, nil
+}
+
+func (l *Listener) beginAcceptingConnections() {
+	for {
+		tcpConn, err := l.tcpListener.Accept()
+		if err != nil {
+			return
+		}
+		go l.handleNewConnection(tcpConn)
+	}
+}
+
+func (l *Listener) handleNewConnection(tcpConn net.Conn) {
+	conn, err := initConnectionAsListener(tcpConn, l)
+	if err != nil {
+		fmt.Println("initConnectionAsListener failed:", err)
+		return
+	}
+	l.establishedConnectionsChan <- conn
 }
 
 // Accept returns the next Connection that has been established on our listener.
