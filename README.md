@@ -1,4 +1,7 @@
-# Project Vortex (Just an idea for now)
+# Project Vortex
+
+## Status
+Just started. Not ready yet.
 
 ## Goal
 You have a large folder called _stuff_. You want to send it to a friend over the intertubes, but there's a problem: both of you are behind NAT and are too lazy (or unable) to forward ports. What are your options?
@@ -18,7 +21,7 @@ TODO: Consider expanding the scope to support multiple peers. It would have the 
 * The only benefit is a P2P transfer model which becomes favorable with a large number of peers.
 * Too similar to BitTorrent.
 
-## Sender
+## Sharer
 ```
 ./vortex share stuff vortex1.virtivia.com
 Setting up a listener
@@ -26,10 +29,10 @@ Attempting to portmap with UPnP: Success
 Connecting to vortex1.virtivia.com:27805
 Registering with the hub server
 Got share code RZSCH2
-Secret share key for folder 'stuff': RZSCH2-yFcdzkwv5MFeyYXzxCc74xiTo3Y=
+Secret share key for folder 'stuff': RZSCH2-SUvBJFNoA9RsF7-yFcdzkwv5MFeyYXzxCc74xiTo3Y=
 Ready to transfer
 
-Receiver command: ./vortex get [path] RZSCH2-yFcdzkwv5MFeyYXzxCc74xiTo3Y= vortex1.virtivia.com
+Receiver command: ./vortex get [path] RZSCH2-SUvBJFNoA9RsF7-yFcdzkwv5MFeyYXzxCc74xiTo3Y= vortex1.virtivia.com
 
 Current receivers:
 ==================
@@ -44,6 +47,7 @@ Found host for share code RZSCH2
 Connecting to share host: 24.42.139.77:45934
 Waiting for the host's public key
 Host's public key matches the SHA1 hash 'yFcdzkwv5MFeyYXzxCc74xiTo3Y='
+Authenticating with share key 'SUvBJFNoA9RsF7'
 Downloading to /Users/Pavel/Downloads/stuff/
 [subfolder/moo.txt] [59 KB]
 [blah.mkv] [25.1 / 97.8 MB (25%) @ 1.3 MB/s]
