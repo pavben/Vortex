@@ -1,6 +1,8 @@
 package manifest
 
 import (
+	"crypto/sha1"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,7 +11,6 @@ import (
 type ManifestEntity interface {
 	Id() uint32
 	Name() string
-	String() string
 }
 
 type Manifest struct {
@@ -17,12 +18,6 @@ type Manifest struct {
 	// Generated entityMap (index) keyed by ID
 	entityMap map[uint32]ManifestEntity
 }
-
-/*
-func (m Manifest) String() string {
-	return (m.rootEntity.(*ManifestFolder).contents[1]).(*ManifestFolder).contents[0].String()
-}
-*/
 
 type ManifestFolder struct {
 	id       uint32
@@ -38,15 +33,11 @@ func (mf *ManifestFolder) Name() string {
 	return mf.name
 }
 
-func (mf *ManifestFolder) String() string {
-	return mf.Name()
-}
-
 type ManifestFile struct {
-	id         uint32
-	name       string
-	byteLength uint64
-	pieces     [][]byte
+	id       uint32
+	name     string
+	fileSize uint64
+	hashes   [][]byte
 }
 
 func (mf *ManifestFile) Id() uint32 {
@@ -57,8 +48,12 @@ func (mf *ManifestFile) Name() string {
 	return mf.name
 }
 
-func (mf *ManifestFile) String() string {
-	return mf.Name()
+func (mf *ManifestFile) Size() uint64 {
+	return mf.fileSize
+}
+
+func (mf *ManifestFile) Hashes() [][]byte {
+	return mf.hashes
 }
 
 func GenerateManifestFromPath(p string) (*Manifest, error) {
@@ -98,13 +93,42 @@ func generateManifestEntityTree(currentPath string, fileInfo os.FileInfo, entity
 			contents: contents,
 		}), nil
 	} else {
+		fileSize, hashes, err := getFileSizeAndHashes(currentPath)
+		if err != nil {
+			return nil, err
+		}
 		return indexAndReturn(entityMap, &ManifestFile{
-			id:         takeId(nextId),
-			name:       fileInfo.Name(),
-			byteLength: 0,
-			pieces:     make([][]byte, 0),
+			id:       takeId(nextId),
+			name:     fileInfo.Name(),
+			fileSize: fileSize,
+			hashes:   hashes,
 		}), nil
 	}
+}
+
+func getFileSizeAndHashes(filePath string) (uint64, [][]byte, error) {
+	const chunkSize uint32 = 4 * 1024 * 1024 // 4 MB
+	f, err := os.Open(filePath)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer f.Close()
+	var bytesRead uint64 = 0
+	var hashes [][]byte
+	buf := make([]byte, chunkSize)
+	for {
+		n, err := f.Read(buf)
+		if err != nil && err != io.EOF {
+			return 0, nil, err
+		}
+		if n <= 0 {
+			break
+		}
+		bytesRead += uint64(n)
+		hash := sha1.Sum(buf[:n])
+		hashes = append(hashes, hash[:])
+	}
+	return bytesRead, hashes, nil
 }
 
 func indexAndReturn(entityMap map[uint32]ManifestEntity, mf ManifestEntity) ManifestEntity {
